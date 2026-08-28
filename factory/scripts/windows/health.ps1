@@ -44,9 +44,13 @@ if ($gitVersion) { Add-Check "git-version" $true $gitVersion }
 
 $orcaVersion = $null
 if (Get-Command orca -ErrorAction SilentlyContinue) {
-    try { $orcaVersion = (& orca --version 2>&1) -join " " } catch { $orcaVersion = $_.Exception.Message }
+    try {
+        $orcaVersion = (& orca version 2>&1) -join " "
+        Add-Check "orca-version" ($LASTEXITCODE -eq 0) $orcaVersion
+    } catch {
+        Add-Check "orca-version" $false $_.Exception.Message
+    }
 }
-if ($orcaVersion) { Add-Check "orca-version" $true $orcaVersion }
 
 $checks | Format-Table -AutoSize
 
