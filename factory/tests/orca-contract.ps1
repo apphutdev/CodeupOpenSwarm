@@ -1,6 +1,8 @@
 #requires -Version 7.0
 [CmdletBinding()]
 param(
+    [string]$Command = "orca",
+    [string[]]$CommandArguments = @(),
     [string[]]$RequiredTools = @(
         "orca_create_run",
         "orca_create_pod",
@@ -19,21 +21,24 @@ function Fail-Contract([string]$Message) {
     throw "ORCA CONTRACT BLOCKED: $Message"
 }
 
-$orca = Get-Command orca -ErrorAction SilentlyContinue
+$orca = Get-Command $Command -ErrorAction SilentlyContinue
 if (-not $orca) {
-    Fail-Contract "orca is not installed or is not on PATH."
+    Fail-Contract "$Command is not installed or is not on PATH."
 }
 
-$versionOutput = & orca version 2>&1
+$versionOutput = & $orca.Source @CommandArguments version 2>&1
 if ($LASTEXITCODE -ne 0) {
     Fail-Contract "'orca version' failed: $($versionOutput -join ' ')"
 }
 Write-Host "Orca version check passed: $($versionOutput -join ' ')"
 
 $process = [System.Diagnostics.Process]::new()
+$processArguments = ($CommandArguments + @("mcp", "serve") | ForEach-Object {
+    '"' + $_.Replace('"', '\"') + '"'
+}) -join " "
 $process.StartInfo = [System.Diagnostics.ProcessStartInfo]@{
     FileName = $orca.Source
-    Arguments = "mcp serve"
+    Arguments = $processArguments
     UseShellExecute = $false
     RedirectStandardInput = $true
     RedirectStandardOutput = $true
