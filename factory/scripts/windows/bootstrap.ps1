@@ -52,7 +52,11 @@ if (-not $SkipOrca) {
     }
 
     Require-Command "orca" "Install Orca and ensure orca.exe is on PATH."
-    Write-Host "Orca: $(& orca --version 2>$null)"
+    $orcaVersion = (& orca version 2>&1) -join " "
+    if ($LASTEXITCODE -ne 0) {
+        throw "Installed Orca failed its version command: $orcaVersion"
+    }
+    Write-Host "Orca: $orcaVersion"
 }
 
 if (-not $SkipHerdr) {
