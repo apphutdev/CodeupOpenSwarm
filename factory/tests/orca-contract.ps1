@@ -84,7 +84,7 @@ try {
             Fail-Contract "received invalid JSON from MCP for '$Method': $line"
         }
 
-        if ($response.error) {
+        if ($response.PSObject.Properties.Name -contains "error") {
             Fail-Contract "MCP '$Method' returned error: $($response.error | ConvertTo-Json -Compress)"
         }
         return $response
