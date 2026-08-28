@@ -1,0 +1,30 @@
+name: Orca Windows Contract
+
+on:
+  pull_request:
+    paths:
+      - "factory/**"
+      - ".github/workflows/orca-windows-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  orca-contract:
+    name: Orca MCP contract (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run compatibility service tests
+        run: python -m unittest factory.tests.test_orca_compat -v
+
+      - name: Verify executable Orca contract
+        shell: pwsh
+        run: ./factory/tests/orca-contract.ps1 -Command python -CommandArguments @("-m", "factory.orca_compat")

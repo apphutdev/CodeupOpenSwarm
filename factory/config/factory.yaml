@@ -1,0 +1,90 @@
+version: 1
+
+platform:
+  reference_os: windows
+  linux_supported: true
+  wsl_required: false
+
+control_plane:
+  herdr:
+    required: false
+    role: operator_ui
+  moshi:
+    required: false
+    role: remote_operator_ui
+
+orchestration:
+  engine: orca
+  state_owner: orca
+  isolation: git_worktree
+  mcp_command: "orca mcp serve"
+  allow_direct_default_branch_writes: false
+
+paths:
+  windows_root: "D:\\AI\\Factory"
+  repos: "repos"
+  worktrees: "worktrees"
+  state: "state"
+  logs: "logs"
+
+roles:
+  commander:
+    purpose: "Own the user objective, create/inspect Orca work and escalate decisions."
+    preferred_harness: codex
+    can_merge: false
+  architect:
+    purpose: "Decompose objectives into bounded dependency-aware tasks."
+    preferred_harness: codex
+    can_merge: false
+  frontend:
+    purpose: "Implement frontend tasks in an assigned worktree."
+    preferred_harness: glm
+    escalation_harness: codex
+    can_merge: false
+  backend:
+    purpose: "Implement backend/API/data tasks in an assigned worktree."
+    preferred_harness: glm
+    escalation_harness: codex
+    can_merge: false
+  tester:
+    purpose: "Create and run unit, integration, E2E and golden-path checks."
+    preferred_harness: glm
+    escalation_harness: codex
+    can_merge: false
+  reviewer_a:
+    purpose: "Independent correctness and architecture review."
+    preferred_harness: codex
+    can_merge: false
+  reviewer_b:
+    purpose: "Adversarial second review looking for missed failure modes."
+    preferred_harness: glm
+    can_merge: false
+  release:
+    purpose: "Create a candidate PR only after all required gates pass."
+    preferred_harness: codex
+    can_merge: false
+
+branching:
+  worker_prefix: "agent/"
+  protected_branches:
+    - main
+    - master
+    - develop
+  require_pull_request: true
+
+quality_gates:
+  required:
+    - build
+    - lint
+    - typecheck
+    - unit_tests
+    - integration_tests
+    - golden_paths
+    - reviewer_a
+    - reviewer_b
+  fail_closed: true
+
+v1:
+  auto_merge: false
+  auto_deploy: false
+  production_credentials_available_to_workers: false
