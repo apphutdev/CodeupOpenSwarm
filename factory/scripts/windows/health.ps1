@@ -9,20 +9,27 @@ $ErrorActionPreference = "Continue"
 $checks = @()
 
 function Add-Check([string]$Name, [bool]$Ok, [string]$Detail) {
+    $status = "FAIL"
+    if ($Ok) { $status = "PASS" }
+
     $script:checks += [pscustomobject]@{
         Name = $Name
-        Status = if ($Ok) { "PASS" } else { "FAIL" }
+        Status = $status
         Detail = $Detail
     }
 }
 
 foreach ($cmd in @("git", "orca")) {
     $found = Get-Command $cmd -ErrorAction SilentlyContinue
-    Add-Check $cmd ([bool]$found) (if ($found) { $found.Source } else { "Not on PATH" })
+    $detail = "Not on PATH"
+    if ($found) { $detail = $found.Source }
+    Add-Check $cmd ([bool]$found) $detail
 }
 
 $herdr = Get-Command "herdr" -ErrorAction SilentlyContinue
-Add-Check "herdr" ([bool]$herdr) (if ($herdr) { $herdr.Source } else { "Optional control plane is not on PATH" })
+$herdrDetail = "Optional control plane is not on PATH"
+if ($herdr) { $herdrDetail = $herdr.Source }
+Add-Check "herdr" ([bool]$herdr) $herdrDetail
 
 foreach ($dir in @("repos", "worktrees", "state", "logs", "config")) {
     $path = Join-Path $Root $dir
